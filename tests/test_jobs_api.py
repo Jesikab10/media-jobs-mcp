@@ -61,3 +61,10 @@ async def test_job_code_cannot_escape_its_route(api: JobsApiClient) -> None:
     with pytest.raises(ApiError) as exc:
         await api.get_job("../runbooks/search")
     assert exc.value.status in {404, 422}
+
+
+async def test_runbook_search_matches_any_term(api: JobsApiClient) -> None:
+    # "encoder" and "503" never appear in the same runbook section. With AND semantics the
+    # lexical side returned nothing; with OR it must surface the transient-errors runbook.
+    passages = await api.search_runbooks("encoder 503")
+    assert any(p.source.startswith("transient-errors.md#") for p in passages)

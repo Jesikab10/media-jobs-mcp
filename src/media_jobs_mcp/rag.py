@@ -105,7 +105,9 @@ HYBRID_SQL = """
 WITH lexical AS (
     SELECT doc, chunk_no,
            row_number() OVER (ORDER BY ts_rank_cd(tsv, q) DESC) AS r
-    FROM runbook_chunks, websearch_to_tsquery('english', %(q)s) AS q
+    FROM runbook_chunks,
+         -- OR semantics: any term may match; ts_rank_cd still favours chunks matching more of them
+         to_tsquery('simple', replace(plainto_tsquery('english', %(q)s)::text, ' & ', ' | ')) AS q
     WHERE tsv @@ q
     ORDER BY r LIMIT 20
 ),
