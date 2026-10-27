@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+
+.env
+.dev-keys/
+evals/results.jsonl
+
+.claude/settings.local.json
+.claude/worktrees/
