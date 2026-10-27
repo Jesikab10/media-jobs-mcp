@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync*)",
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run mypy*)",
+      "Bash(uv run python -m media_jobs_mcp.evals*)",
+      "Bash(uv run mjm-agent*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.dev-keys/**)",
+      "Bash(git push*main*)",
+      "Bash(terraform apply*)",
+      "Bash(gcloud * deploy*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "python .claude/hooks/guard.py" }]
+      }
+    ]
+  }
+}
