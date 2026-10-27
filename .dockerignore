@@ -1,0 +1,8 @@
+.venv
+.git
+.env
+.dev-keys
+.claude
+tests
+evals/results.jsonl
+**/__pycache__

@@ -1,0 +1,58 @@
+# Local stack: Postgres (pgvector) + jobs API + MCP server over Streamable HTTP with OAuth.
+#
+#   uv run python -m media_jobs_mcp.devtokens init      # once: dev signing key + JWKS
+#   docker compose up --build
+#   TOKEN=$(uv run python -m media_jobs_mcp.devtokens mint --scope "jobs:read jobs:write")
+#
+# Secrets come from .env (see .env.example); nothing sensitive is committed.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: media_jobs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d media_jobs"]
+      interval: 5s
+      retries: 10
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  jobs-api:
+    build: .
+    command: ["jobs-api"]
+    environment:
+      MJM_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/media_jobs
+      MJM_SERVICE_TOKEN: ${MJM_SERVICE_TOKEN:?set MJM_SERVICE_TOKEN in .env}
+      MJM_FAILURE_INJECTION: "false"
+      MJM_SEED_DEMO_DATA: "true"
+    depends_on:
+      db: {condition: service_healthy}
+    ports: ["127.0.0.1:8080:8080"]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+
+  mcp:
+    build: .
+    command: ["media-jobs-mcp", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      MJM_API_BASE_URL: http://jobs-api:8080
+      MJM_SERVICE_TOKEN: ${MJM_SERVICE_TOKEN}
+      MJM_AUTH_MODE: jwt
+      MJM_OIDC_ISSUER: ${MJM_OIDC_ISSUER:-http://localhost:9000}
+      MJM_OIDC_AUDIENCE: http://localhost:8000/mcp
+      MJM_JWKS_FILE: /run/keys/jwks.json
+    volumes: ["./.dev-keys/jwks.json:/run/keys/jwks.json:ro"]
+    depends_on:
+      jobs-api: {condition: service_healthy}
+    ports: ["127.0.0.1:8000:8000"]
+    healthcheck:
+      disable: true
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  pgdata:

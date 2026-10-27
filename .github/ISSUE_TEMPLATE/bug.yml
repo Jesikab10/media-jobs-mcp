@@ -1,0 +1,19 @@
+name: Bug report
+description: Something behaves differently from what the docs or tests say.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the command, the input, and the full output.
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations: {required: true}
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
