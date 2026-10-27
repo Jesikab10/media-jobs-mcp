@@ -30,7 +30,7 @@ jobs:
       MJM_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/media_jobs_test
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install ffmpeg
